@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import { ListData } from '@react-stately/data';
 import type { FilterCondition, Table, TreeTable } from '@deephaven/jsapi-types';
 import {
   KeyedItem,
@@ -7,6 +6,7 @@ import {
   createOnTableUpdatedHandler,
   defaultRowDeserializer,
   isClosed,
+  WindowedListData,
 } from '@deephaven/jsapi-utils';
 import { useApi } from '@deephaven/jsapi-bootstrap';
 import useInitializeViewportData from './useInitializeViewportData';
@@ -26,7 +26,7 @@ export interface UseViewportDataResult<
   TTable extends Table | TreeTable
 > {
   /** Manages deserialized row items associated with a DH Table */
-  viewportData: ListData<KeyedItem<TItem>>;
+  viewportData: WindowedListData<KeyedItem<TItem>>;
   /** Size of the underlying Table */
   size: number;
 

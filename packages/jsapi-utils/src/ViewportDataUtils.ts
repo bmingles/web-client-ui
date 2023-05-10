@@ -1,3 +1,4 @@
+import type { Key } from 'react';
 import { ListData } from '@react-stately/data';
 import clamp from 'lodash.clamp';
 import { Column, Row, Table, TreeTable } from '@deephaven/jsapi-shim';
@@ -15,6 +16,20 @@ export type OnTableUpdatedEvent = CustomEvent<{
 }>;
 
 export type RowDeserializer<T> = (row: ViewportRow, columns: Column[]) => T;
+
+export type WindowedListData<T> = Pick<
+  ListData<T>,
+  | 'items'
+  | 'append'
+  | 'getItem'
+  | 'insert'
+  | 'remove'
+  | 'selectedKeys'
+  | 'setSelectedKeys'
+  | 'update'
+> & {
+  bulkUpdate: (itemMap: Map<Key, T>) => void;
+};
 
 export type ViewportRow = Row & { offsetInSnapshot: number };
 
@@ -41,7 +56,7 @@ export function createKeyFromOffsetRow(row: ViewportRow, offset: number) {
  * @returns Handler function for a `dh.Table.EVENT_UPDATED` event.
  */
 export function createOnTableUpdatedHandler<T>(
-  viewportData: ListData<KeyedItem<T>>,
+  viewportData: WindowedListData<KeyedItem<T>>,
   deserializeRow: RowDeserializer<T>
 ): (event: OnTableUpdatedEvent) => void {
   /**
@@ -52,6 +67,34 @@ export function createOnTableUpdatedHandler<T>(
 
     log.debug('table updated', event.detail);
 
+    const keyedItems = rows.map(row => {
+      const item = deserializeRow(row, columns);
+
+      return {
+        key: createKeyFromOffsetRow(row, offset),
+        item,
+      };
+    });
+
+    const updateKeyMap = new Map<Key, KeyedItem<T>>();
+    keyedItems.forEach(keyedItem => {
+      if (viewportData.getItem(keyedItem.key) == null) {
+        return;
+      }
+
+      updateKeyMap.set(keyedItem.key, {
+        ...keyedItem,
+        key:
+          (keyedItem as any).item.user +
+          ':' +
+          (keyedItem as any).item.groupname,
+      });
+    });
+
+    if (updateKeyMap.size > 0) {
+      viewportData.bulkUpdate(updateKeyMap);
+    }
+
     rows.forEach(row => {
       const item = deserializeRow(row, columns);
 
@@ -61,7 +104,7 @@ export function createOnTableUpdatedHandler<T>(
       };
 
       if (viewportData.getItem(keyedItem.key) != null) {
-        viewportData.update(keyedItem.key, keyedItem);
+        // viewportData.update(keyedItem.key, keyedItem);
       } else {
         viewportData.append(keyedItem);
       }
@@ -112,7 +155,7 @@ export function* generateEmptyKeyedItems<T>(
  * @returns An array of items matching the given keys
  */
 export function getItemsFromListData<T>(
-  listData: ListData<KeyedItem<T>>,
+  listData: WindowedListData<KeyedItem<T>>,
   ...keys: string[]
 ): KeyedItem<T>[] {
   return keys.map(key => listData.getItem(key));
