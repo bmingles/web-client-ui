@@ -1,19 +1,16 @@
 import React, { useCallback, useState } from 'react';
-import {
-  Flex,
-  Item,
-  Picker,
-  ItemKey,
-  Section,
-  Text,
-} from '@deephaven/components';
+import { Item, Picker, ItemKey, Section, Text } from '@deephaven/components';
 import { vsPerson } from '@deephaven/icons';
-import { Icon } from '@adobe/react-spectrum';
+import { Grid, Icon } from '@adobe/react-spectrum';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { generateNormalizedItems, sampleSectionIdAndClasses } from './utils';
 
 // Generate enough items to require scrolling
 const items = [...generateNormalizedItems(52)];
+const itemsWithIcons = [...generateNormalizedItems(52, { icons: true })];
+const itemsWithIconsAndDescriptions = [
+  ...generateNormalizedItems(52, { icons: true, descriptions: true }),
+];
 
 function PersonIcon(): JSX.Element {
   return (
@@ -35,7 +32,7 @@ export function Pickers(): JSX.Element {
     <div {...sampleSectionIdAndClasses('pickers')}>
       <h2 className="ui-title">Pickers</h2>
 
-      <Flex gap={14}>
+      <Grid gap={14}>
         <Picker label="Single Child" tooltip={{ placement: 'bottom-end' }}>
           <Item>Aaa</Item>
         </Picker>
@@ -57,6 +54,11 @@ export function Pickers(): JSX.Element {
           <Item textValue="Complex Ccc">
             <PersonIcon />
             <Text>Complex Ccc with text that should be truncated</Text>
+          </Item>
+          <Item textValue="Complex Ccc with Description">
+            <PersonIcon />
+            <Text>Complex Ccc with text that should be truncated</Text>
+            <Text slot="description">Description</Text>
           </Item>
         </Picker>
 
@@ -100,7 +102,23 @@ export function Pickers(): JSX.Element {
         >
           {items}
         </Picker>
-      </Flex>
+
+        <Picker
+          label="Controlled (with icons)"
+          selectedKey={selectedKey}
+          onChange={onChange}
+        >
+          {itemsWithIcons}
+        </Picker>
+
+        <Picker
+          label="Controlled (with icons and descriptions)"
+          selectedKey={selectedKey}
+          onChange={onChange}
+        >
+          {itemsWithIconsAndDescriptions}
+        </Picker>
+      </Grid>
     </div>
   );
 }

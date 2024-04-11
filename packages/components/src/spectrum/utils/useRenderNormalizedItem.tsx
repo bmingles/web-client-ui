@@ -1,7 +1,36 @@
-import { Key, useCallback } from 'react';
+import { Key, ReactNode, useCallback } from 'react';
+import { Icon } from '@adobe/react-spectrum';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { dh as dhIcons } from '@deephaven/icons';
 import { ItemContent } from '../ItemContent';
 import { Item } from '../shared';
-import { getItemKey, NormalizedItem, TooltipOptions } from './itemUtils';
+import {
+  getItemKey,
+  ItemIconSlot,
+  NormalizedItem,
+  TooltipOptions,
+} from './itemUtils';
+import { Text } from '../Text';
+
+function wrapPrimitiveWithText(content?: ReactNode, slot?: string): ReactNode {
+  if (['string', 'boolean', 'number'].includes(typeof content)) {
+    return <Text slot={slot}>{String(content)}</Text>;
+  }
+
+  return content;
+}
+
+function wrapIcon(maybeIconKey: ReactNode, slot: ItemIconSlot): ReactNode {
+  if (typeof maybeIconKey !== 'string') {
+    return maybeIconKey;
+  }
+
+  return (
+    <Icon slot={slot}>
+      <FontAwesomeIcon icon={dhIcons[maybeIconKey] ?? dhIcons.vsBlank} />
+    </Icon>
+  );
+}
 
 /**
  * Returns a render function that can be used to render a normalized item in
@@ -10,13 +39,19 @@ import { getItemKey, NormalizedItem, TooltipOptions } from './itemUtils';
  * @returns Render function for normalized items
  */
 export function useRenderNormalizedItem(
+  itemIconSlot: 'icon' | 'image' | 'illustration',
   tooltipOptions: TooltipOptions | null
 ): (normalizedItem: NormalizedItem) => JSX.Element {
   return useCallback(
     (normalizedItem: NormalizedItem) => {
       const key = getItemKey(normalizedItem);
-      const content = normalizedItem.item?.content ?? '';
+      const content = wrapPrimitiveWithText(normalizedItem.item?.content ?? '');
       const textValue = normalizedItem.item?.textValue ?? '';
+      const description = wrapPrimitiveWithText(
+        normalizedItem.item?.description,
+        'description'
+      );
+      const icon = wrapIcon(normalizedItem.item?.icon, itemIconSlot);
 
       return (
         <Item
@@ -34,11 +69,15 @@ export function useRenderNormalizedItem(
           // 'Empty' value so that they are not empty strings.
           textValue={textValue === '' ? 'Empty' : textValue}
         >
-          <ItemContent tooltipOptions={tooltipOptions}>{content}</ItemContent>
+          <ItemContent tooltipOptions={tooltipOptions}>
+            {icon}
+            {content}
+            {description}
+          </ItemContent>
         </Item>
       );
     },
-    [tooltipOptions]
+    [itemIconSlot, tooltipOptions]
   );
 }
 

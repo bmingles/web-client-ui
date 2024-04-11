@@ -1,6 +1,7 @@
 import cl from 'classnames';
 import { useCallback, useState } from 'react';
 import { NormalizedItem } from '@deephaven/components';
+import { dh as dhIcons } from '@deephaven/icons';
 
 export const HIDE_FROM_E2E_TESTS_CLASS = 'hide-from-e2e-tests';
 export const SAMPLE_SECTION_CLASS = 'sample-section';
@@ -10,10 +11,13 @@ export const SAMPLE_SECTION_CLASS = 'sample-section';
  * @param count The number of items to generate
  */
 export function* generateNormalizedItems(
-  count: number
+  count: number,
+  include: { descriptions?: boolean; icons?: boolean } = {}
 ): Generator<NormalizedItem> {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   const len = letters.length;
+
+  const iconKeys = Object.keys(dhIcons);
 
   for (let i = 0; i < count; i += 1) {
     const charI = i % len;
@@ -23,12 +27,18 @@ export function* generateNormalizedItems(
     }
     const letter = letters[charI];
     const key = `${letter}${suffix}`;
+    const icon =
+      include.icons === true ? iconKeys[i % iconKeys.length] : undefined;
+    const description =
+      include.descriptions === true ? `Description ${key}` : undefined;
 
     yield {
       key,
       item: {
         key: (i + 1) * 100,
-        content: `${letter}${letter}${letter}${suffix}`,
+        content: icon ?? `${letter}${letter}${letter}${suffix}`,
+        description,
+        icon,
       },
     };
   }
