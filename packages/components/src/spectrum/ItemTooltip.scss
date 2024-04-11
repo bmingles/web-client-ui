@@ -1,0 +1,19 @@
+.dh-item-tooltip {
+  --item-tooltip-description-color: var(--spectrum-global-color-gray-700);
+  --item-tooltip-description-font-size: var(
+    --spectrum-global-dimension-font-size-75
+  );
+}
+
+/**
+  * The Spectrum ListView styles for item descriptions only apply when the
+  * description is a child of the ListViewItem. For example, here is a selector 
+  * for the styles:
+  * .C64cMW_react-spectrum-ListViewItem .C64cMW_react-spectrum-ListViewItem-description
+  * This will not work in Tooltips where there isn't a wrapping ListViewItem, so
+  * we copy the necessary styles.
+  */
+.dh-item-tooltip-description {
+  color: var(--item-tooltip-description-color);
+  font-size: var(--item-tooltip-description-font-size);
+}

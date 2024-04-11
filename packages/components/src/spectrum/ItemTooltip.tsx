@@ -1,9 +1,11 @@
-import { ReactNode } from 'react';
+import { Children, cloneElement, ReactElement, ReactNode } from 'react';
+import cl from 'classnames';
 import { isElementOfType } from '@deephaven/react-hooks';
 import { TooltipOptions } from './utils';
 import { Tooltip } from '../popper';
 import { Flex } from './layout';
-import { Text } from './Text';
+import { Text, TextProps } from './Text';
+import './ItemTooltip.scss';
 
 export interface ItemTooltipProps {
   children: ReactNode;
@@ -18,13 +20,27 @@ export function ItemTooltip({
   options,
 }: ItemTooltipProps): JSX.Element {
   if (Array.isArray(children)) {
+    // Multiple children scenarios include a `<Text>` node for the label and at
+    // least 1 of an optional icon or `<Text slot="description">` node. In such
+    // cases we only show the label and description `<Text>` nodes.
+    const textElements: ReactElement<TextProps>[] = children.filter(node =>
+      isElementOfType(node, Text)
+    );
+
     return (
-      <Tooltip options={options}>
-        {/* Multiple children scenarios include a `<Text>` node for the label 
-        and at least 1 of an optional icon or `<Text slot="description">` node.
-        In such cases we only show the label and description `<Text>` nodes. */}
+      <Tooltip popperClassName="dh-item-tooltip" options={options}>
         <Flex direction="column" alignItems="start">
-          {children.filter(node => isElementOfType(node, Text))}
+          {Children.map(textElements, textEl =>
+            textEl.props.slot === 'description'
+              ? cloneElement(textEl, {
+                  ...textEl.props,
+                  UNSAFE_className: cl(
+                    textEl.props.UNSAFE_className,
+                    'dh-item-tooltip-description'
+                  ),
+                })
+              : textEl
+          )}
         </Flex>
       </Tooltip>
     );
