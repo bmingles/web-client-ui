@@ -27,20 +27,20 @@ export function ItemTooltip({
       isElementOfType(node, Text)
     );
 
+    const textElementsWithCssClass = Children.map(textElements, textEl =>
+      cloneElement(textEl, {
+        ...textEl.props,
+        UNSAFE_className: cl(
+          textEl.props.UNSAFE_className,
+          `dh-item-tooltip-text-${textEl.props.slot ?? 'label'}`
+        ),
+      })
+    );
+
     return (
       <Tooltip popperClassName="dh-item-tooltip" options={options}>
         <Flex direction="column" alignItems="start">
-          {Children.map(textElements, textEl =>
-            textEl.props.slot === 'description'
-              ? cloneElement(textEl, {
-                  ...textEl.props,
-                  UNSAFE_className: cl(
-                    textEl.props.UNSAFE_className,
-                    'dh-item-tooltip-description'
-                  ),
-                })
-              : textEl
-          )}
+          {textElementsWithCssClass}
         </Flex>
       </Tooltip>
     );
