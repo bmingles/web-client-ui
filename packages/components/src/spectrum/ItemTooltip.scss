@@ -13,7 +13,7 @@
   * This will not work in Tooltips where there isn't a wrapping ListViewItem, so
   * we copy the necessary styles.
   */
-.dh-item-tooltip-description {
+.dh-item-tooltip-text-description {
   color: var(--item-tooltip-description-color);
   font-size: var(--item-tooltip-description-font-size);
 }
