@@ -31,6 +31,8 @@ export function ListView({
   ...props
 }: ListViewProps): JSX.Element {
   const { scale } = useProvider();
+
+  // TODO #1890 : descriptionColumn, iconColumn
   const itemHeight = LIST_VIEW_ROW_HEIGHTS[props.density ?? 'regular'][scale];
 
   const { getFormattedString: formatValue } = useFormatter(settings);

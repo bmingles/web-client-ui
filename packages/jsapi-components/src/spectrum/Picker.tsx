@@ -6,7 +6,7 @@ import {
 import { dh as DhType } from '@deephaven/jsapi-types';
 import { Settings } from '@deephaven/jsapi-utils';
 import Log from '@deephaven/log';
-import { PICKER_ITEM_HEIGHT, PICKER_TOP_OFFSET } from '@deephaven/utils';
+import { PICKER_ITEM_HEIGHTS, PICKER_TOP_OFFSET } from '@deephaven/utils';
 import { useCallback, useEffect, useMemo } from 'react';
 import useFormatter from '../useFormatter';
 import useGetItemIndexByValue from '../useGetItemIndexByValue';
@@ -38,6 +38,9 @@ export function Picker({
 }: PickerProps): JSX.Element {
   const { getFormattedString: formatValue } = useFormatter(settings);
 
+  // TODO #1890 : descriptionColumn, iconColumn
+  const itemHeight = PICKER_ITEM_HEIGHTS.noDescription;
+
   const keyColumn = useMemo(
     () => getItemKeyColumn(table, keyColumnName),
     [keyColumnName, table]
@@ -63,8 +66,8 @@ export function Picker({
       return null;
     }
 
-    return index * PICKER_ITEM_HEIGHT + PICKER_TOP_OFFSET;
-  }, [getItemIndexByValue]);
+    return index * itemHeight + PICKER_TOP_OFFSET;
+  }, [getItemIndexByValue, itemHeight]);
 
   const { viewportData, onScroll, setViewport } = useViewportData<
     NormalizedItemData,
@@ -72,7 +75,7 @@ export function Picker({
   >({
     reuseItemsOnTableResize: true,
     table,
-    itemHeight: PICKER_ITEM_HEIGHT,
+    itemHeight,
     deserializeRow,
   });
 

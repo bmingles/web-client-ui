@@ -1,7 +1,5 @@
-import { Key, ReactNode, useCallback } from 'react';
-import { Icon } from '@adobe/react-spectrum';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { dh as dhIcons } from '@deephaven/icons';
+import { Key, useCallback } from 'react';
+
 import { ItemContent } from '../ItemContent';
 import { Item } from '../shared';
 import {
@@ -10,48 +8,45 @@ import {
   NormalizedItem,
   TooltipOptions,
 } from './itemUtils';
-import { Text } from '../Text';
+import { wrapIcon, wrapPrimitiveWithText } from './itemWrapperUtils';
 
-function wrapPrimitiveWithText(content?: ReactNode, slot?: string): ReactNode {
-  if (['string', 'boolean', 'number'].includes(typeof content)) {
-    return <Text slot={slot}>{String(content)}</Text>;
-  }
-
-  return content;
-}
-
-function wrapIcon(maybeIconKey: ReactNode, slot: ItemIconSlot): ReactNode {
-  if (typeof maybeIconKey !== 'string') {
-    return maybeIconKey;
-  }
-
-  return (
-    <Icon slot={slot}>
-      <FontAwesomeIcon icon={dhIcons[maybeIconKey] ?? dhIcons.vsBlank} />
-    </Icon>
-  );
+export interface UseRenderNormalizedItemOptions {
+  itemIconSlot: ItemIconSlot;
+  showItemDescriptions: boolean;
+  showItemIcons: boolean;
+  tooltipOptions: TooltipOptions | null;
 }
 
 /**
  * Returns a render function that can be used to render a normalized item in
  * collection components.
+ * @param itemIconSlot Slot to use for the item icon
+ * @param showItemDescriptions Whether to show descriptions in the item
+ * @param showItemIcons Whether to show icons in the item
  * @param tooltipOptions Tooltip options to use when rendering the item
  * @returns Render function for normalized items
  */
-export function useRenderNormalizedItem(
-  itemIconSlot: 'icon' | 'image' | 'illustration',
-  tooltipOptions: TooltipOptions | null
-): (normalizedItem: NormalizedItem) => JSX.Element {
+export function useRenderNormalizedItem({
+  itemIconSlot,
+  showItemDescriptions,
+  showItemIcons,
+  tooltipOptions,
+}: UseRenderNormalizedItemOptions): (
+  normalizedItem: NormalizedItem
+) => JSX.Element {
   return useCallback(
     (normalizedItem: NormalizedItem) => {
       const key = getItemKey(normalizedItem);
-      const content = wrapPrimitiveWithText(normalizedItem.item?.content ?? '');
+      const content = wrapPrimitiveWithText(normalizedItem.item?.content);
       const textValue = normalizedItem.item?.textValue ?? '';
-      const description = wrapPrimitiveWithText(
-        normalizedItem.item?.description,
-        'description'
-      );
-      const icon = wrapIcon(normalizedItem.item?.icon, itemIconSlot);
+
+      const description = showItemDescriptions
+        ? wrapPrimitiveWithText(normalizedItem.item?.description, 'description')
+        : null;
+
+      const icon = showItemIcons
+        ? wrapIcon(normalizedItem.item?.icon, itemIconSlot)
+        : null;
 
       return (
         <Item
@@ -77,7 +72,7 @@ export function useRenderNormalizedItem(
         </Item>
       );
     },
-    [itemIconSlot, tooltipOptions]
+    [itemIconSlot, showItemDescriptions, showItemIcons, tooltipOptions]
   );
 }
 
