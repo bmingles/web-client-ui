@@ -1,9 +1,5 @@
 import { useMemo } from 'react';
-import {
-  Flex,
-  ListView as SpectrumListView,
-  SpectrumListViewProps,
-} from '@adobe/react-spectrum';
+import { Flex, SpectrumListViewProps } from '@adobe/react-spectrum';
 import { EMPTY_FUNCTION } from '@deephaven/utils';
 import {
   extractSpectrumHTMLElement,
@@ -12,17 +8,16 @@ import {
 } from '@deephaven/react-hooks';
 import cl from 'classnames';
 import {
+  isNormalizedItemsWithKeysList,
   ItemElementOrPrimitive,
   ItemKey,
   ItemSelection,
   NormalizedItem,
-  normalizeItemList,
   normalizeTooltipOptions,
   TooltipOptions,
-  useRenderItemFlags,
-  useRenderNormalizedItem,
-  useStringifiedMultiSelection,
 } from '../utils';
+import ListViewFromChildren from './ListViewFromChildren';
+import ListViewFromItems from './ListViewFromItems';
 
 export type ListViewProps = {
   children:
@@ -75,52 +70,16 @@ export type ListViewProps = {
 export function ListView({
   children,
   tooltip = true,
-  selectedKeys,
-  defaultSelectedKeys,
-  disabledKeys,
-  showItemIcons: showItemIconsDefault,
-  showItemDescriptions: showItemDescriptionsDefault,
+  showItemIcons = false,
+  showItemDescriptions = false,
   UNSAFE_className,
-  onChange,
   onScroll = EMPTY_FUNCTION,
-  onSelectionChange,
   ...spectrumListViewProps
 }: ListViewProps): JSX.Element | null {
-  const normalizedItems = useMemo(
-    () => normalizeItemList(children),
-    [children]
-  );
-
   const tooltipOptions = useMemo(
     () => normalizeTooltipOptions(tooltip, 'bottom'),
     [tooltip]
   );
-
-  const { showItemIcons, showItemDescriptions } = useRenderItemFlags({
-    normalizedItems,
-    showItemIcons: showItemIconsDefault,
-    showItemDescriptions: showItemDescriptionsDefault,
-  });
-
-  const renderNormalizedItem = useRenderNormalizedItem({
-    itemIconSlot: 'image',
-    showItemDescriptions,
-    showItemIcons,
-    tooltipOptions,
-  });
-
-  const {
-    selectedStringKeys,
-    defaultSelectedStringKeys,
-    disabledStringKeys,
-    onStringSelectionChange,
-  } = useStringifiedMultiSelection({
-    normalizedItems,
-    selectedKeys,
-    defaultSelectedKeys,
-    disabledKeys,
-    onChange: onChange ?? onSelectionChange,
-  });
 
   const scrollRef = useOnScrollRef(onScroll, extractSpectrumHTMLElement);
 
@@ -129,6 +88,38 @@ export function ListView({
   // height.
   const { ref: contentRectRef, contentRect } = useContentRect(
     extractSpectrumHTMLElement
+  );
+
+  const listView = useMemo(
+    () =>
+      isNormalizedItemsWithKeysList(children) ? (
+        <ListViewFromItems
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...spectrumListViewProps}
+          ref={scrollRef}
+          showItemDescriptions={showItemDescriptions}
+          showItemIcons={showItemIcons}
+          tooltipOptions={tooltipOptions}
+          items={children}
+        />
+      ) : (
+        <ListViewFromChildren
+          // eslint-disable-next-line react/jsx-props-no-spreading
+          {...spectrumListViewProps}
+          ref={scrollRef}
+          tooltipOptions={tooltipOptions}
+        >
+          {children}
+        </ListViewFromChildren>
+      ),
+    [
+      children,
+      scrollRef,
+      showItemDescriptions,
+      showItemIcons,
+      spectrumListViewProps,
+      tooltipOptions,
+    ]
   );
 
   return (
@@ -153,18 +144,7 @@ export function ListView({
         // 4. ListView is rendered again.
         <>&nbsp;</>
       ) : (
-        <SpectrumListView
-          // eslint-disable-next-line react/jsx-props-no-spreading
-          {...spectrumListViewProps}
-          ref={scrollRef}
-          items={normalizedItems}
-          selectedKeys={selectedStringKeys}
-          defaultSelectedKeys={defaultSelectedStringKeys}
-          disabledKeys={disabledStringKeys}
-          onSelectionChange={onStringSelectionChange}
-        >
-          {renderNormalizedItem}
-        </SpectrumListView>
+        listView
       )}
     </Flex>
   );

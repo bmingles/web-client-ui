@@ -1,10 +1,18 @@
-import { ReactNode } from 'react';
-import { Icon } from '@adobe/react-spectrum';
+import { cloneElement, ReactElement, ReactNode } from 'react';
+import { Icon, Item } from '@adobe/react-spectrum';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { dh as dhIcons } from '@deephaven/icons';
 import { NON_BREAKING_SPACE } from '@deephaven/utils';
 import { Text } from '../Text';
-import { ItemIconSlot } from './itemUtils';
+import {
+  isItemElement,
+  isSectionElement,
+  ItemElement,
+  ItemIconSlot,
+  ItemOrSection,
+  SectionElement,
+} from './itemUtils';
+import { ItemProps } from '../shared';
 
 /**
  * If the given content is a primitive type, wrap it in a Text component.
@@ -54,4 +62,42 @@ export function wrapIcon(
       <FontAwesomeIcon icon={dhIcons[maybeIconKey] ?? dhIcons.vsBlank} />
     </Icon>
   );
+}
+
+export function normalizeAsItemElementList(
+  itemsOrSections: ItemOrSection | ItemOrSection[]
+): (ItemElement | SectionElement)[] {
+  const itemsArray: ItemOrSection[] = Array.isArray(itemsOrSections)
+    ? itemsOrSections
+    : [itemsOrSections];
+
+  return itemsArray.map(item => {
+    if (isItemElement(item)) {
+      return item;
+    }
+
+    if (isSectionElement(item)) {
+      return cloneElement(item, {
+        ...item.props,
+        children: normalizeAsItemElementList(
+          item.props.children
+        ) as ReactElement<ItemProps<unknown>>[],
+      });
+    }
+
+    if (
+      typeof item === 'string' ||
+      typeof item === 'number' ||
+      typeof item === 'boolean'
+    ) {
+      const text = String(item);
+      return (
+        <Item key={text} textValue={text}>
+          <Text>{text}</Text>
+        </Item>
+      );
+    }
+
+    return item;
+  });
 }
