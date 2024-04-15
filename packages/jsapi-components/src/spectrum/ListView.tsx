@@ -11,14 +11,24 @@ import useFormatter from '../useFormatter';
 import useViewportData from '../useViewportData';
 import { useItemRowDeserializer } from './utils';
 
-export interface ListViewProps extends Omit<ListViewPropsBase, 'children'> {
+export interface ListViewProps
+  extends Omit<
+    ListViewPropsBase,
+    'children' | 'showItemDescriptions' | 'showItemIcons'
+  > {
   table: DhType.Table;
+
   /* The column of values to use as item keys. Defaults to the first column. */
   keyColumn?: string;
+
   /* The column of values to display as primary text. Defaults to the `keyColumn` value. */
   labelColumn?: string;
 
-  // TODO #1890 : descriptionColumn, iconColumn
+  /* The column of values to display as descriptions. */
+  descriptionColumn?: string;
+
+  /* The column of values to map to icons. */
+  iconColumn?: string;
 
   settings?: Settings;
 }
@@ -27,6 +37,8 @@ export function ListView({
   table,
   keyColumn: keyColumnName,
   labelColumn: labelColumnName,
+  descriptionColumn: descriptionColumnName,
+  iconColumn: iconColumnName,
   settings,
   ...props
 }: ListViewProps): JSX.Element {
@@ -56,6 +68,8 @@ export function ListView({
     <ListViewBase
       // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
+      showItemDescriptions={descriptionColumnName != null}
+      showItemIcons={iconColumnName != null}
       onScroll={onScroll}
     >
       {viewportData.items}

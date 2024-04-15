@@ -1,7 +1,8 @@
-import { cloneElement, ReactElement, ReactNode } from 'react';
+import { Children, cloneElement, ReactElement, ReactNode } from 'react';
 import { Icon, Item } from '@adobe/react-spectrum';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { dh as dhIcons } from '@deephaven/icons';
+import { isElementOfType } from '@deephaven/react-hooks';
 import { NON_BREAKING_SPACE } from '@deephaven/utils';
 import { Text } from '../Text';
 import {
@@ -11,8 +12,10 @@ import {
   ItemIconSlot,
   ItemOrSection,
   SectionElement,
+  TooltipOptions,
 } from './itemUtils';
 import { ItemProps } from '../shared';
+import ItemContent from '../ItemContent';
 
 /**
  * If the given content is a primitive type, wrap it in a Text component.
@@ -64,23 +67,42 @@ export function wrapIcon(
   );
 }
 
-export function normalizeAsItemElementList(
-  itemsOrSections: ItemOrSection | ItemOrSection[]
+/**
+ * Ensure all primitive children are wrapped in `Item` elements and that all
+ * `Item` element content is wrapped in `ItemContent` elements to handle text
+ * overflow consistently and to support tooltips.
+ * @param itemsOrSections The items or sections to wrap
+ * @param tooltipOptions The tooltip options to use when wrapping items
+ * @returns The wrapped items or sections
+ */
+export function wrapItemChildren(
+  itemsOrSections: ItemOrSection | ItemOrSection[],
+  tooltipOptions: TooltipOptions | null
 ): (ItemElement | SectionElement)[] {
-  const itemsArray: ItemOrSection[] = Array.isArray(itemsOrSections)
-    ? itemsOrSections
-    : [itemsOrSections];
-
-  return itemsArray.map(item => {
+  return Children.map(itemsOrSections, item => {
     if (isItemElement(item)) {
-      return item;
+      if (isElementOfType(item.props.children, ItemContent)) {
+        return item;
+      }
+
+      // Wrap in `ItemContent` so we can support tooltips and handle text
+      // overflow
+      return cloneElement(item, {
+        ...item.props,
+        children: (
+          <ItemContent tooltipOptions={tooltipOptions}>
+            {wrapPrimitiveWithText(item.props.children)}
+          </ItemContent>
+        ),
+      });
     }
 
     if (isSectionElement(item)) {
       return cloneElement(item, {
         ...item.props,
-        children: normalizeAsItemElementList(
-          item.props.children
+        children: wrapItemChildren(
+          item.props.children,
+          tooltipOptions
         ) as ReactElement<ItemProps<unknown>>[],
       });
     }
@@ -93,7 +115,7 @@ export function normalizeAsItemElementList(
       const text = String(item);
       return (
         <Item key={text} textValue={text}>
-          <Text>{text}</Text>
+          <ItemContent tooltipOptions={tooltipOptions}>{text}</ItemContent>
         </Item>
       );
     }
