@@ -28,7 +28,7 @@ export const ListViewFromItems = forwardRef<
       showItemDescriptions,
       showItemIcons,
       tooltipOptions,
-      items,
+      items: normalizedItems,
       onChange,
       onSelectionChange,
       ...props
@@ -48,7 +48,7 @@ export const ListViewFromItems = forwardRef<
       disabledStringKeys,
       onStringSelectionChange,
     } = useStringifiedMultiSelection({
-      normalizedItems: items,
+      normalizedItems,
       selectedKeys,
       defaultSelectedKeys,
       disabledKeys,
@@ -57,10 +57,13 @@ export const ListViewFromItems = forwardRef<
 
     return (
       <SpectrumListView
+        // Spectrum doesn't re-render if only the `renderNormalizedItems` function
+        // changes, so we have to force a re-render by changing the key.
+        key={`${showItemIcons}-${showItemDescriptions}-${tooltipOptions?.placement}`}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={forwardedRef}
-        items={items}
+        items={normalizedItems}
         selectedKeys={selectedStringKeys}
         defaultSelectedKeys={defaultSelectedStringKeys}
         disabledKeys={disabledStringKeys}

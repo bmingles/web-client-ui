@@ -6,6 +6,7 @@ import {
   ListView,
   ItemKey,
   Text,
+  Checkbox,
 } from '@deephaven/components';
 import { vsAccount, vsPerson } from '@deephaven/icons';
 import { Icon } from '@adobe/react-spectrum';
@@ -54,6 +55,9 @@ export function ListViews(): JSX.Element {
   const [selectedKeys, setSelectedKeys] = useState<'all' | Iterable<ItemKey>>(
     []
   );
+
+  const [showIcons, setShowIcons] = useState(true);
+  const [showDescriptions, setShowDescriptions] = useState(true);
 
   const onChange = useCallback((keys: 'all' | Iterable<ItemKey>): void => {
     setSelectedKeys(keys);
@@ -144,12 +148,28 @@ export function ListViews(): JSX.Element {
             </Item>
           </ListView>
         </LabeledFlexColumn>
+        <Flex gridColumn="span 3" gap={14}>
+          <Checkbox
+            checked={showIcons}
+            onChange={e => setShowIcons(e.currentTarget.checked)}
+          >
+            Show Ions
+          </Checkbox>
+          <Checkbox
+            checked={showDescriptions}
+            onChange={e => setShowDescriptions(e.currentTarget.checked)}
+          >
+            Show Descriptions
+          </Checkbox>
+        </Flex>
 
         <LabeledFlexColumn label="Controlled">
           <ListView
             aria-label="Controlled"
             selectionMode="multiple"
             selectedKeys={selectedKeys}
+            showItemDescriptions={showDescriptions}
+            showItemIcons={showIcons}
             onChange={onChange}
           >
             {itemsSimple}
@@ -161,6 +181,8 @@ export function ListViews(): JSX.Element {
             aria-label="Controlled"
             selectionMode="multiple"
             selectedKeys={selectedKeys}
+            showItemDescriptions={showDescriptions}
+            showItemIcons={showIcons}
             onChange={onChange}
           >
             {itemsWithIcons}
@@ -172,6 +194,8 @@ export function ListViews(): JSX.Element {
             aria-label="Controlled"
             selectionMode="multiple"
             selectedKeys={selectedKeys}
+            showItemDescriptions={showDescriptions}
+            showItemIcons={showIcons}
             onChange={onChange}
           >
             {itemsWithIconsAndDescriptions}

@@ -8,38 +8,42 @@ import type { ListViewPropsCommon } from './ListViewModel';
 import {
   ItemElementOrPrimitive,
   ItemKey,
-  normalizeAsItemElementList,
   TooltipOptions,
+  wrapItemChildren,
 } from '../utils';
 
 export interface ListViewFromChildrenProps extends ListViewPropsCommon {
-  tooltipOptions: TooltipOptions | null;
   children: ItemElementOrPrimitive | ItemElementOrPrimitive[];
+  tooltipOptions: TooltipOptions | null;
 }
 
 export const ListViewFromChildren = forwardRef<
   DOMRefValue<HTMLDivElement>,
   ListViewFromChildrenProps
 >(
-  ({
-    children,
-    selectedKeys,
-    defaultSelectedKeys,
-    disabledKeys,
-    tooltipOptions,
-    onChange,
-    onSelectionChange,
-    ...props
-  }): JSX.Element => {
+  (
+    {
+      children,
+      selectedKeys,
+      defaultSelectedKeys,
+      disabledKeys,
+      tooltipOptions,
+      onChange,
+      onSelectionChange,
+      ...props
+    },
+    forwardedRef
+  ): JSX.Element => {
     const wrappedChildren = useMemo(
-      () => normalizeAsItemElementList(children),
-      [children]
+      () => wrapItemChildren(children, tooltipOptions),
+      [children, tooltipOptions]
     );
 
     return (
       <SpectrumListView
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        ref={forwardedRef}
         selectedKeys={
           selectedKeys as SpectrumListViewProps<ItemKey>['selectedKeys']
         }
