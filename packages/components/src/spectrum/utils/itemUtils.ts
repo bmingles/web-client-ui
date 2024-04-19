@@ -22,7 +22,7 @@ type SectionPropsNoItemRenderer<T> = Omit<SectionProps<T>, 'children'> & {
   children: Exclude<SectionProps<T>['children'], ItemRenderer<T>>;
 };
 
-type ItemElement = ReactElement<ItemProps<unknown>>;
+export type ItemElement = ReactElement<ItemProps<unknown>>;
 export type SectionElement = ReactElement<SectionPropsNoItemRenderer<unknown>>;
 
 export type ItemElementOrPrimitive = number | string | boolean | ItemElement;
@@ -219,9 +219,11 @@ function normalizeItemContent(item: ItemElement): {
  * @param itemOrSection The item or section
  * @returns A `ItemKey` for the item or undefined if a key can't be determined
  */
-function normalizeItemKey(item: ItemElementOrPrimitive): ItemKey | undefined;
-function normalizeItemKey(section: SectionElement): Key | undefined;
-function normalizeItemKey(
+export function normalizeItemKey(
+  item: ItemElementOrPrimitive
+): ItemKey | undefined;
+export function normalizeItemKey(section: SectionElement): Key | undefined;
+export function normalizeItemKey(
   itemOrSection: ItemElementOrPrimitive | SectionElement
 ): Key | ItemKey | undefined {
   // string, number, or boolean

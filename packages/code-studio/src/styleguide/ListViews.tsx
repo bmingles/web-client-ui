@@ -106,7 +106,7 @@ export function ListViews(): JSX.Element {
             density="compact"
             maxWidth="size-2400"
             selectionMode="multiple"
-            defaultSelectedKeys={[999, 444]}
+            defaultSelectedKeys={['999', 444]}
           >
             {/* eslint-disable react/jsx-curly-brace-presence */}
             {'String 1'}
