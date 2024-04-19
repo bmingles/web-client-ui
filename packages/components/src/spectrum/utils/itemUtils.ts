@@ -1,4 +1,4 @@
-import { Children, isValidElement, Key, ReactElement, ReactNode } from 'react';
+import { isValidElement, Key, ReactElement, ReactNode } from 'react';
 import { SpectrumPickerProps } from '@adobe/react-spectrum';
 import type { ItemRenderer } from '@react-types/shared';
 import Log from '@deephaven/log';
@@ -191,28 +191,20 @@ function normalizeItemContent(item: ItemElement): {
     return { label: item.props.children };
   }
 
-  let description: ReactNode | undefined;
-  let icon: ReactNode | undefined;
+  let icon: ReactNode;
+  let label: ReactNode;
+  let description: ReactNode;
 
-  const label: ReactNode = Children.map(item.props.children, child => {
-    if (isElementOfType(child, Text) && child.props.slot === 'description') {
-      description = child;
-      return null;
-    }
-
-    // Picker uses `icon` slot. ListView can use `image` or `illustration` slots.
-    // https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/picker/src/Picker.tsx#L194
-    // https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/list/src/ListViewItem.tsx#L266-L267
-    if (
-      child.props.slot === 'icon' ||
-      child.props.slot === 'image' ||
-      child.props.slot === 'illustration'
-    ) {
+  item.props.children.forEach((child, i) => {
+    if (isElementOfType(child, Text)) {
+      if (child.props.slot === 'description') {
+        description = child;
+      } else {
+        label = child;
+      }
+    } else {
       icon = child;
-      return null;
     }
-
-    return child;
   });
 
   return {
@@ -315,6 +307,25 @@ function normalizeItem<TItemOrSection extends ItemOrSection>(
   return {
     item: { key, content: label, description, textValue, icon },
   } as NormalizedItemOrSection<TItemOrSection>;
+}
+
+/**
+ * Check if any item in a normalized item list has a specific property on its
+ * `item` prop.
+ * @param normalizedItems The list of normalized items to check
+ * @param prop The property to check for
+ * @returns True if any item has the property
+ */
+export function doesAnyItemHaveProp<TItemOrSection extends ItemOrSection>(
+  normalizedItems: NormalizedItemOrSection<TItemOrSection>[],
+  prop: string
+): boolean {
+  return normalizedItems.some(
+    item =>
+      item.item != null &&
+      prop in item.item &&
+      item.item[prop as keyof typeof item.item] != null
+  );
 }
 
 /**

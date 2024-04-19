@@ -14,14 +14,14 @@ const itemsWithIconsAndDescriptions = [
 
 function PersonIcon(): JSX.Element {
   return (
-    <Icon>
+    <Icon slot="icon">
       <FontAwesomeIcon icon={vsPerson} />
     </Icon>
   );
 }
 
 export function Pickers(): JSX.Element {
-  const [selectedKey, setSelectedKey] = useState<ItemKey | null>(null);
+  const [selectedKey, setSelectedKey] = useState<ItemKey | null>(1500);
 
   const onChange = useCallback((key: ItemKey): void => {
     setSelectedKey(key);

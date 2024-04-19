@@ -19,6 +19,7 @@ import {
   normalizeItemList,
   normalizeTooltipOptions,
   TooltipOptions,
+  useRenderItemFlags,
   useRenderNormalizedItem,
   useStringifiedMultiSelection,
 } from '../utils';
@@ -33,6 +34,18 @@ export type ListViewProps = {
   selectedKeys?: 'all' | Iterable<ItemKey>;
   defaultSelectedKeys?: 'all' | Iterable<ItemKey>;
   disabledKeys?: Iterable<ItemKey>;
+  /**
+   * Whether to show item icons. If not provided, items will be checked for
+   * icons. If any are found, icons will be shown for all items. This should be
+   * explicitly set for windowed data.
+   */
+  showItemIcons?: boolean;
+  /**
+   * Whether to show item descriptions. If not provided, items will be checked
+   * for descriptions. If any are found, descriptions will be shown for all
+   * items. This should be explicitly set for windowed data.
+   */
+  showItemDescriptions?: boolean;
   /**
    * Handler that is called when the selection change.
    * Note that under the hood, this is just an alias for Spectrum's
@@ -65,6 +78,8 @@ export function ListView({
   selectedKeys,
   defaultSelectedKeys,
   disabledKeys,
+  showItemIcons: showItemIconsDefault,
+  showItemDescriptions: showItemDescriptionsDefault,
   UNSAFE_className,
   onChange,
   onScroll = EMPTY_FUNCTION,
@@ -81,7 +96,18 @@ export function ListView({
     [tooltip]
   );
 
-  const renderNormalizedItem = useRenderNormalizedItem('image', tooltipOptions);
+  const { showItemIcons, showItemDescriptions } = useRenderItemFlags({
+    normalizedItems,
+    showItemIcons: showItemIconsDefault,
+    showItemDescriptions: showItemDescriptionsDefault,
+  });
+
+  const renderNormalizedItem = useRenderNormalizedItem({
+    itemIconSlot: 'image',
+    showItemDescriptions,
+    showItemIcons,
+    tooltipOptions,
+  });
 
   const {
     selectedStringKeys,

@@ -8,7 +8,7 @@ import {
 } from '@deephaven/react-hooks';
 import {
   EMPTY_FUNCTION,
-  PICKER_ITEM_HEIGHT,
+  PICKER_ITEM_HEIGHTS,
   PICKER_TOP_OFFSET,
 } from '@deephaven/utils';
 import cl from 'classnames';
@@ -24,7 +24,7 @@ import {
   getItemKey,
 } from '../utils/itemUtils';
 import { Section } from '../shared';
-import { useRenderNormalizedItem } from '../utils';
+import { useRenderItemFlags, useRenderNormalizedItem } from '../utils';
 
 export type PickerProps = {
   children: ItemOrSection | ItemOrSection[] | NormalizedItem[];
@@ -34,6 +34,21 @@ export type PickerProps = {
   selectedKey?: ItemKey | null;
   /** The initial selected key in the collection (uncontrolled). */
   defaultSelectedKey?: ItemKey;
+  /**
+   * Whether to show item icons. If not provided, items will be checked for
+   * icons. If any are found, icons will be shown for all items. This is necessary
+   * to ensure all items have the same height which is needed for mapping the
+   * initial scroll position. This should be explicitly set for windowed data.
+   */
+  showItemIcons?: boolean;
+  /**
+   * Whether to show item descriptions. If not provided, items will be checked
+   * for descriptions. If any are found, descriptions will be shown for all items.
+   * This is necessary to ensure all items have the same height which is needed
+   * for mapping scroll position to item indices. This should be explicitly set
+   * for windowed data.
+   */
+  showItemDescriptions?: boolean;
   /** Function to retrieve initial scroll position when opening the picker */
   getInitialScrollPosition?: () => Promise<number | null>;
   /**
@@ -78,6 +93,8 @@ export function Picker({
   tooltip = true,
   defaultSelectedKey,
   selectedKey,
+  showItemIcons: showItemIconsDefault,
+  showItemDescriptions: showItemDescriptionsDefault,
   getInitialScrollPosition,
   onChange,
   onOpenChange,
@@ -92,12 +109,27 @@ export function Picker({
     [children]
   );
 
+  const { showItemIcons, showItemDescriptions } = useRenderItemFlags({
+    normalizedItems,
+    showItemIcons: showItemIconsDefault,
+    showItemDescriptions: showItemDescriptionsDefault,
+  });
+
+  const itemHeight = showItemDescriptions
+    ? PICKER_ITEM_HEIGHTS.withDescription
+    : PICKER_ITEM_HEIGHTS.noDescription;
+
   const tooltipOptions = useMemo(
     () => normalizeTooltipOptions(tooltip),
     [tooltip]
   );
 
-  const renderNormalizedItem = useRenderNormalizedItem('icon', tooltipOptions);
+  const renderNormalizedItem = useRenderNormalizedItem({
+    itemIconSlot: 'icon',
+    showItemDescriptions,
+    showItemIcons,
+    tooltipOptions,
+  });
 
   const getInitialScrollPositionInternal = useCallback(
     () =>
@@ -106,12 +138,18 @@ export function Picker({
             keyedItems: normalizedItems,
             // TODO: #1890 & deephaven-plugins#371 add support for sections and
             // items with descriptions since they impact the height calculations
-            itemHeight: PICKER_ITEM_HEIGHT,
-            selectedKey,
+            itemHeight,
+            selectedKey: selectedKey ?? defaultSelectedKey,
             topOffset: PICKER_TOP_OFFSET,
           })
         : getInitialScrollPosition(),
-    [getInitialScrollPosition, normalizedItems, selectedKey]
+    [
+      defaultSelectedKey,
+      getInitialScrollPosition,
+      itemHeight,
+      normalizedItems,
+      selectedKey,
+    ]
   );
 
   const { ref: scrollRef, onOpenChange: popoverOnOpenChange } =
