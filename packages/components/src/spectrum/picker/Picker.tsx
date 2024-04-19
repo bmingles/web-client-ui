@@ -97,7 +97,7 @@ export function Picker({
     [tooltip]
   );
 
-  const renderNormalizedItem = useRenderNormalizedItem(tooltipOptions);
+  const renderNormalizedItem = useRenderNormalizedItem('icon', tooltipOptions);
 
   const getInitialScrollPositionInternal = useCallback(
     () =>

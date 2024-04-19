@@ -81,7 +81,7 @@ export function ListView({
     [tooltip]
   );
 
-  const renderNormalizedItem = useRenderNormalizedItem(tooltipOptions);
+  const renderNormalizedItem = useRenderNormalizedItem('image', tooltipOptions);
 
   const {
     selectedStringKeys,

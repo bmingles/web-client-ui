@@ -1,10 +1,12 @@
-import { isValidElement, Key, ReactElement, ReactNode } from 'react';
+import { Children, isValidElement, Key, ReactElement, ReactNode } from 'react';
 import { SpectrumPickerProps } from '@adobe/react-spectrum';
 import type { ItemRenderer } from '@react-types/shared';
 import Log from '@deephaven/log';
+import { isElementOfType } from '@deephaven/react-hooks';
 import { KeyedItem, SelectionT } from '@deephaven/utils';
 import { Item, ItemProps, Section, SectionProps } from '../shared';
 import { PopperOptions } from '../../popper';
+import { Text } from '../Text';
 
 const log = Log.module('itemUtils');
 
@@ -35,6 +37,11 @@ export type ItemKey = Key | boolean;
 
 export type ItemSelection = SelectionT<ItemKey>;
 
+// Picker uses `icon` slot. ListView can use `image` or `illustration` slots.
+// https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/picker/src/Picker.tsx#L194
+// https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/list/src/ListViewItem.tsx#L266-L267
+export type ItemIconSlot = 'icon' | 'image' | 'illustration';
+
 /**
  * Augment the Spectrum selection change handler type to include boolean keys.
  * Spectrum components already supports this, but the built in types don't
@@ -45,6 +52,8 @@ export type ItemSelectionChangeHandler = (key: ItemKey) => void;
 export interface NormalizedItemData {
   key?: ItemKey;
   content: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
   textValue?: string;
 }
 
@@ -173,6 +182,46 @@ export function isItemOrSection(node: ReactNode): node is ItemOrSection {
   );
 }
 
+function normalizeItemContent(item: ItemElement): {
+  label: ReactNode;
+  description?: ReactNode;
+  icon?: ReactNode;
+} {
+  if (!Array.isArray(item.props.children)) {
+    return { label: item.props.children };
+  }
+
+  let description: ReactNode | undefined;
+  let icon: ReactNode | undefined;
+
+  const label: ReactNode = Children.map(item.props.children, child => {
+    if (isElementOfType(child, Text) && child.props.slot === 'description') {
+      description = child;
+      return null;
+    }
+
+    // Picker uses `icon` slot. ListView can use `image` or `illustration` slots.
+    // https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/picker/src/Picker.tsx#L194
+    // https://github.com/adobe/react-spectrum/blob/main/packages/%40react-spectrum/list/src/ListViewItem.tsx#L266-L267
+    if (
+      child.props.slot === 'icon' ||
+      child.props.slot === 'image' ||
+      child.props.slot === 'illustration'
+    ) {
+      icon = child;
+      return null;
+    }
+
+    return child;
+  });
+
+  return {
+    label,
+    description,
+    icon,
+  };
+}
+
 /**
  * Determine the `key` of an item or section.
  * @param itemOrSection The item or section
@@ -258,13 +307,13 @@ function normalizeItem<TItemOrSection extends ItemOrSection>(
   }
 
   const key = normalizeItemKey(itemOrSection);
-  const content = isItemElement(itemOrSection)
-    ? itemOrSection.props.children
-    : itemOrSection;
+  const { label, description, icon } = isItemElement(itemOrSection)
+    ? normalizeItemContent(itemOrSection)
+    : { label: itemOrSection, description: undefined, icon: undefined };
   const textValue = normalizeTextValue(itemOrSection);
 
   return {
-    item: { key, content, textValue },
+    item: { key, content: label, description, textValue, icon },
   } as NormalizedItemOrSection<TItemOrSection>;
 }
 
