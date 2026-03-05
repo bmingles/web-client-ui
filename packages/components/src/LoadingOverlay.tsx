@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import classNames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { vsWarning } from '@deephaven/icons';
 import ThemeExport from './ThemeExport';
 import LoadingSpinner from './LoadingSpinner';
+import { sendErrorNotificationToParent } from './utils/errorNotification';
 import './LoadingOverlay.scss';
 
 type LoadingOverlayProps = {
@@ -34,6 +35,19 @@ function LoadingOverlay({
     dataTestId != null ? `${dataTestId}-message` : undefined;
   const spinnerTestId =
     dataTestId != null ? `${dataTestId}-spinner` : undefined;
+
+  // Send error notification to parent window when error message is displayed
+  useEffect(() => {
+    console.error('[TESTING] Error caught by LoadingOverlay', errorMessage);
+    if (errorMessage != null && !isLoading) {
+      sendErrorNotificationToParent(
+        {
+          message: errorMessage,
+        },
+        'LoadingOverlay'
+      );
+    }
+  }, [errorMessage, isLoading]);
 
   return (
     <CSSTransition

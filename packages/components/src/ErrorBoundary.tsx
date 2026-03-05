@@ -1,6 +1,7 @@
 import Log from '@deephaven/log';
 import React, { Component, type ReactNode } from 'react';
 import LoadingOverlay from './LoadingOverlay';
+import { sendErrorNotificationToParent } from './utils/errorNotification';
 
 const log = Log.module('ErrorBoundary');
 
@@ -41,8 +42,19 @@ export class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     const { onError } = this.props;
+    console.error('[TESTING] Error caught by ErrorBoundary', error, errorInfo);
     log.error('Error caught by ErrorBoundary', error, errorInfo);
     onError?.(error, errorInfo);
+
+    // Send JSON RPC notification to parent window (iframe host) for MCP App SDK
+    sendErrorNotificationToParent(
+      {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack ?? undefined,
+      },
+      'ErrorBoundary'
+    );
   }
 
   render(): ReactNode {

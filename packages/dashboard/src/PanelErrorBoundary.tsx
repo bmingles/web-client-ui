@@ -46,6 +46,7 @@ class PanelErrorBoundary extends Component<
   render(): ReactNode {
     const { children } = this.props;
     const { error } = this.state;
+    console.error('[TESTING] Error caught by ErrorBoundary', error);
     if (error != null) {
       return (
         <div className="panel-error-boundary">

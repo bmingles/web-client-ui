@@ -22,6 +22,7 @@ export { default as DragUtils } from './DragUtils';
 export { default as EditableItemList } from './EditableItemList';
 export * from './ErrorBoundary';
 export { default as ErrorView } from './ErrorView';
+export { sendErrorNotificationToParent } from './utils/errorNotification';
 export { default as HierarchicalCheckboxMenu } from './HierarchicalCheckboxMenu';
 export * from './HierarchicalCheckboxMenu';
 export * from './ItemList';
